@@ -3,4 +3,5 @@ __pycache__
 *.pyc
 db.sqlite3
 staticfiles/
-.DS_Storeenv.yaml
+.DS_Store
+env.yaml
