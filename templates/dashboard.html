@@ -837,7 +837,7 @@ async function sendMessage() {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken'),
             },
-            body: JSON.stringify({ message: text, history: messages.slice(-10) }),
+            body: JSON.stringify({ question: text, history: messages.slice(-10) }),
         });
 
         const data  = await response.json();
@@ -858,8 +858,8 @@ async function sendMessage() {
         ];
         const fallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
         removeTyping();
-        typeMessage(fallback);
-        speak(fallback);
+        typeMessage(text);
+        speak(text);
         const emotion = detectEmotion(fallback);
         setEmotion(emotion);
     }

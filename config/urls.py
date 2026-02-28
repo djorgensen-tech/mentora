@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import home, register, login_view, logout_view, dashboard, textbook_upload, textbook_reader, textbook_delete, speak
+from core.views import home, register, login_view, logout_view, dashboard, textbook_upload, textbook_reader, textbook_delete, speak, chat
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,6 +14,7 @@ urlpatterns = [
     path('textbooks/upload/', textbook_upload, name='textbook_upload'),
     path('textbooks/<int:pk>/read/', textbook_reader, name='textbook_reader'),
     path('textbooks/<int:pk>/delete/', textbook_delete, name='textbook_delete'),
+    path('api/chat/', chat, name='chat'),
     path('api/speak/', speak, name='speak'),
 ]
 

@@ -9,6 +9,7 @@ from .models import User, Textbook
 from .forms import TextbookUploadForm
 import requests
 import os
+import json
 
 
 def home(request):
@@ -101,8 +102,28 @@ def textbook_delete(request, pk):
 
 @login_required
 @require_POST
+def chat(request):
+    try:
+        body = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    question = (body.get('question') or body.get('message') or '').strip()
+    if not question:
+        return JsonResponse({'error': 'No message provided'}, status=400)
+
+    try:
+        from agent.AIBrain.chat import ask_math_1050
+        reply = ask_math_1050(question)
+    except Exception:
+        return JsonResponse({'error': 'Chat service unavailable'}, status=500)
+
+    return JsonResponse({'reply': reply})
+
+
+@login_required
+@require_POST
 def speak(request):
-    import json
     body = json.loads(request.body)
     text = body.get('text', '')
 
