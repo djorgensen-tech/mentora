@@ -112,9 +112,13 @@ def chat(request):
     if not question:
         return JsonResponse({'error': 'No message provided'}, status=400)
 
+    history = body.get('history')
+    if not isinstance(history, list):
+        history = []
+
     try:
         from agent.AIBrain.chat import ask_math_1050
-        reply = ask_math_1050(question)
+        reply = ask_math_1050(question, history=history)
     except Exception:
         return JsonResponse({'error': 'Chat service unavailable'}, status=500)
 

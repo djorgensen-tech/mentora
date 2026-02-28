@@ -8,25 +8,36 @@ from langchain_core.output_parsers import StrOutputParser
 from supabase.client import create_client
 from dotenv import load_dotenv
 
-PROMPT_TEMPLATE = """
-You are Professor Monte, an enthusiastic and expressive college Math 1050 tutor.
-Answer the student's question based ONLY on the provided context.
-If the answer isn't in the context, say you don't know.
+def _load_prompt_template() -> str:
+    prompt_path = Path(__file__).resolve().parent / "promptTemplate.txt"
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Could not find prompt template at {prompt_path}")
 
-To keep your expressions lively, naturally weave in these words where appropriate:
-- When the student is RIGHT or did well: use "excellent", "great", or "correct"
-- When warning or correcting: use "careful" or "tricky" (avoid being harsh)
-- When something is enjoyable or neat: use "fun", "interesting", or "cool"
-- When empathizing with difficulty: use "sorry" or acknowledge something is "difficult" or "hard"
-- When something is counterintuitive or surprising: use "wow", "surprising", or "unexpected"
+    prompt = prompt_path.read_text(encoding="utf-8").strip()
+    if not prompt:
+        raise ValueError("promptTemplate.txt is empty")
 
-Don't force these words unnaturally — use them when they genuinely fit the moment.
+    return prompt
 
-Context:
-{context}
 
-Question: {question}
-"""
+def _format_history(history) -> str:
+    if not history:
+        return "No prior conversation."
+
+    lines = []
+    for item in history[-10:]:
+        if not isinstance(item, dict):
+            continue
+
+        role = (item.get("role") or "user").strip().lower()
+        content = (item.get("content") or "").strip()
+        if not content:
+            continue
+
+        speaker = "Assistant" if role == "assistant" else "User"
+        lines.append(f"{speaker}: {content}")
+
+    return "\n".join(lines) if lines else "No prior conversation."
 
 
 def _find_env_file() -> Path:
@@ -52,7 +63,8 @@ def _build_rag_chain():
     supabase = create_client(supabase_url, supabase_service_key)
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2, api_key=groq_api_key)
-    prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+    
+    prompt = ChatPromptTemplate.from_template(_load_prompt_template())
 
     def manual_supabase_retriever(query: str) -> str:
         query_embedding = embeddings.embed_query(query)
@@ -83,6 +95,7 @@ def _build_rag_chain():
         {
             "context": lambda x: manual_supabase_retriever(x["question"]),
             "question": lambda x: x["question"],
+            "history": lambda x: _format_history(x.get("history")),
         }
         | prompt
         | llm
@@ -92,12 +105,12 @@ def _build_rag_chain():
     return rag_chain
 
 
-def ask_math_1050(question: str) -> str:
+def ask_math_1050(question: str, history=None) -> str:
     if not question or not question.strip():
         raise ValueError("Question cannot be empty")
 
     rag_chain = _build_rag_chain()
-    return rag_chain.invoke({"question": question})
+    return rag_chain.invoke({"question": question, "history": history or []})
 
 
 if __name__ == "__main__":
