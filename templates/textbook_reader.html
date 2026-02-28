@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Topbar -->
+<div style="background: var(--charcoal); border-bottom: 1px solid rgba(255,255,255,0.08);"
+     class="px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-white transition text-sm">← Dashboard</a>
+        <span class="text-gray-600">|</span>
+        <div>
+            <span class="text-white font-semibold text-sm">{{ textbook.title }}</span>
+            {% if textbook.subject %}
+                <span class="text-gray-400 text-sm ml-2">· {{ textbook.subject }}</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="flex items-center gap-2">
+        <span style="color: var(--green);" class="text-xs font-semibold uppercase tracking-widest">Mentora</span>
+    </div>
+</div>
+
+<!-- Split screen container -->
+<div id="split-container" style="height: calc(100vh - 57px); display: flex; overflow: hidden;">
+
+    <!-- LEFT: AI Tutor panel -->
+    <div id="chat-panel" style="width: 380px; min-width: 200px; max-width: 70%; background: #f9fafb; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0;">
+
+        <!-- Chat header -->
+        <div style="background: var(--charcoal);" class="px-6 py-4">
+            <div class="flex items-center gap-3">
+                <div style="background: var(--green);" class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 01-1.31.83l-.663.248a.75.75 0 01-.57-1.388l.663-.248c.2-.075.385-.19.534-.337l.348-.348a3.5 3.5 0 10-4.95-4.95l-.348.349a1.875 1.875 0 01-.534.337l-.664.247a.75.75 0 11-.57-1.388l.664-.247a3.375 3.375 0 00.961-.607l.348-.348A5 5 0 0112 7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white text-sm font-semibold">Mentora AI</p>
+                    <p class="text-gray-400 text-xs">Ask me anything about this textbook</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages area -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+            <div class="flex gap-3">
+                <div style="background: var(--green);" class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <span class="text-white text-xs font-bold">M</span>
+                </div>
+                <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-700 shadow-sm max-w-xs">
+                    Hi! I'm your Mentora tutor. I can see you're reading <strong>{{ textbook.title }}</strong>. What would you like help with?
+                </div>
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="px-4 py-4 border-t border-gray-200 bg-white">
+            <div class="flex gap-2 items-end">
+                <textarea id="chat-input"
+                    placeholder="Ask a question about this textbook..."
+                    rows="2"
+                    class="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-400"
+                    onkeydown="handleKey(event)"></textarea>
+                <button onclick="sendMessage()"
+                        style="background: var(--green);"
+                        class="text-white p-3 rounded-xl hover:opacity-90 transition flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-xs text-gray-300 mt-2 text-center">AI responses powered by Groq</p>
+        </div>
+    </div>
+
+    <!-- DIVIDER (draggable) -->
+    <div id="divider" style="width: 5px; background: #e5e7eb; cursor: col-resize; flex-shrink: 0; transition: background 0.15s;"
+         onmouseenter="this.style.background='var(--green)'"
+         onmouseleave="this.style.background=isDragging?'var(--green)':'#e5e7eb'">
+    </div>
+
+    <!-- RIGHT: PDF viewer -->
+    <div id="pdf-panel" style="flex: 1; background: #525659; display: flex; flex-direction: column; overflow: hidden; min-width: 200px;">
+
+        <!-- PDF toolbar -->
+        <div style="background: #3d4043; border-bottom: 1px solid rgba(255,255,255,0.1);"
+             class="px-4 py-2 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <button onclick="prevPage()" class="text-gray-300 hover:text-white transition p-1 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+
+                <!-- Page input -->
+                <div class="flex items-center gap-1">
+                    <input id="page-input"
+                           type="number" min="1" value="1"
+                           style="background: #525659; border: 1px solid rgba(255,255,255,0.15); color: #d1d5db;"
+                           class="w-12 text-center text-xs rounded px-1 py-1 focus:outline-none focus:border-green-400"
+                           onchange="goToPage(this.value)"
+                           onkeydown="if(event.key==='Enter') goToPage(this.value)" />
+                    <span class="text-gray-400 text-xs">/ <span id="page-count">—</span></span>
+                </div>
+
+                <button onclick="nextPage()" class="text-gray-300 hover:text-white transition p-1 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="zoomOut()" class="text-gray-300 hover:text-white transition text-xs px-2 py-1 rounded">−</button>
+                <span id="zoom-level" class="text-gray-300 text-xs w-12 text-center">100%</span>
+                <button onclick="zoomIn()" class="text-gray-300 hover:text-white transition text-xs px-2 py-1 rounded">+</button>
+            </div>
+        </div>
+
+        <!-- Canvas container -->
+        <div id="pdf-container" class="flex-1 overflow-auto flex items-start justify-center py-6">
+            <canvas id="pdf-canvas" class="shadow-2xl"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    // ── PDF Viewer ──────────────────────────────────────────────────────────
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const PDF_URL = "{{ textbook.pdf_file.url }}";
+    let pdfDoc = null;
+    let currentPage = 1;
+    let scale = 1.3;
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function renderPage(num) {
+        pdfDoc.getPage(num).then(page => {
+            const viewport = page.getViewport({ scale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+                currentPage = num;
+                document.getElementById('page-input').value = num;
+            });
+        });
+    }
+
+    pdfjsLib.getDocument(PDF_URL).promise.then(doc => {
+        pdfDoc = doc;
+        document.getElementById('page-count').textContent = doc.numPages;
+        document.getElementById('page-input').max = doc.numPages;
+        renderPage(currentPage);
+    }).catch(() => {
+        document.getElementById('pdf-container').innerHTML =
+            '<p class="text-gray-400 text-sm mt-10">Could not load PDF.</p>';
+    });
+
+    function prevPage() { if (currentPage > 1) renderPage(currentPage - 1); }
+    function nextPage() { if (pdfDoc && currentPage < pdfDoc.numPages) renderPage(currentPage + 1); }
+    function goToPage(val) {
+        const n = parseInt(val);
+        if (pdfDoc && n >= 1 && n <= pdfDoc.numPages) renderPage(n);
+        else document.getElementById('page-input').value = currentPage;
+    }
+    function zoomIn()  { scale = Math.min(scale + 0.2, 3.0); document.getElementById('zoom-level').textContent = Math.round(scale * 100) + '%'; renderPage(currentPage); }
+    function zoomOut() { scale = Math.max(scale - 0.2, 0.5); document.getElementById('zoom-level').textContent = Math.round(scale * 100) + '%'; renderPage(currentPage); }
+
+    // Keyboard navigation (skip if focused on inputs)
+    document.addEventListener('keydown', e => {
+        const tag = document.activeElement.tagName;
+        if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextPage();
+        if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prevPage();
+    });
+
+    // ── Draggable divider ───────────────────────────────────────────────────
+    const divider   = document.getElementById('divider');
+    const chatPanel = document.getElementById('chat-panel');
+    const container = document.getElementById('split-container');
+    let isDragging  = false;
+
+    divider.addEventListener('mousedown', e => {
+        isDragging = true;
+        divider.style.background = 'var(--green)';
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const rect = container.getBoundingClientRect();
+        const newWidth = e.clientX - rect.left;
+        const clamped = Math.max(200, Math.min(newWidth, rect.width - 200 - 5));
+        chatPanel.style.width = clamped + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        divider.style.background = '#e5e7eb';
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    });
+
+    // ── Chat ────────────────────────────────────────────────────────────────
+    function appendMessage(text, role) {
+        const container = document.getElementById('chat-messages');
+        const isUser = role === 'user';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex gap-3' + (isUser ? ' justify-end' : '');
+        wrapper.innerHTML = isUser
+            ? `<div class="bg-green-500 text-white rounded-2xl rounded-tr-sm px-4 py-3 text-sm max-w-xs">${text}</div>`
+            : `<div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5" style="background:var(--green)">
+                   <span class="text-white text-xs font-bold">M</span>
+               </div>
+               <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-700 shadow-sm max-w-xs">${text}</div>`;
+        container.appendChild(wrapper);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        appendMessage(text, 'user');
+
+        // TODO: replace with Groq API call
+        // Available context: text, "{{ textbook.title }}", "{{ textbook.subject }}", currentPage
+        setTimeout(() => {
+            appendMessage("I'm thinking about your question… (Groq integration coming soon!)", 'assistant');
+        }, 600);
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+</script>
+
+{% endblock %}

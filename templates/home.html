@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Hero -->
+<div style="background: var(--charcoal);" class="px-8 py-32 text-center">
+    <p style="color: var(--green);" class="text-sm font-semibold uppercase tracking-widest mb-4">Free for every student</p>
+    <h1 class="serif text-white text-6xl font-black leading-tight mb-6 max-w-3xl mx-auto">
+        The tutor you always wished you had.
+    </h1>
+    <p class="text-gray-400 text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+        Mentora uses real textbooks to guide you through any subject — without ever just giving you the answer.
+    </p>
+    {% if user.is_authenticated %}
+        <a href="/dashboard/" style="background: var(--green);" class="inline-block text-white px-10 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition">Go to Dashboard</a>
+    {% else %}
+        <a href="/register/" style="background: var(--green);" class="inline-block text-white px-10 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition">Start learning for free</a>
+    {% endif %}
+</div>
+
+<!-- Divider -->
+<div style="background: var(--charcoal); height: 80px; clip-path: ellipse(55% 100% at 50% 0%);"></div>
+
+<!-- How it works -->
+<div class="max-w-5xl mx-auto px-8 py-24">
+    <p class="text-center text-sm font-semibold uppercase tracking-widest mb-3" style="color: var(--green)">How it works</p>
+    <h2 class="serif text-4xl font-black text-center mb-16" style="color: var(--charcoal)">Learning that actually sticks</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div>
+            <div class="text-5xl mb-5">📖</div>
+            <h3 class="serif text-xl font-bold mb-3" style="color: var(--charcoal)">Pick your textbook</h3>
+            <p style="color: var(--warm-gray);" class="leading-relaxed">Choose from thousands of free open textbooks across every subject and grade level.</p>
+        </div>
+        <div>
+            <div class="text-5xl mb-5">💬</div>
+            <h3 class="serif text-xl font-bold mb-3" style="color: var(--charcoal)">Talk to your professor</h3>
+            <p style="color: var(--warm-gray);" class="leading-relaxed">Mentora reads the material with you, asks questions, and guides you to the answer yourself.</p>
+        </div>
+        <div>
+            <div class="text-5xl mb-5">🧠</div>
+            <h3 class="serif text-xl font-bold mb-3" style="color: var(--charcoal)">Build real understanding</h3>
+            <p style="color: var(--warm-gray);" class="leading-relaxed">No shortcuts. No copy-paste answers. Just the satisfaction of actually getting it.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Grade levels -->
+<div style="background: #f0faf4;" class="py-20 px-8 text-center">
+    <h2 class="serif text-3xl font-black mb-4" style="color: var(--charcoal)">Built for every level</h2>
+    <p style="color: var(--warm-gray);" class="mb-12 text-lg">Mentora adapts its teaching style based on where you are.</p>
+    <div class="flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
+        <span style="border: 2px solid var(--green); color: var(--green-dark);" class="px-6 py-3 rounded-full font-semibold text-sm bg-white">Elementary</span>
+        <span style="border: 2px solid var(--green); color: var(--green-dark);" class="px-6 py-3 rounded-full font-semibold text-sm bg-white">Middle School</span>
+        <span style="border: 2px solid var(--green); color: var(--green-dark);" class="px-6 py-3 rounded-full font-semibold text-sm bg-white">High School</span>
+        <span style="border: 2px solid var(--green); color: var(--green-dark);" class="px-6 py-3 rounded-full font-semibold text-sm bg-white">College</span>
+    </div>
+</div>
+
+<!-- CTA -->
+<div style="background: var(--charcoal);" class="py-24 px-8 text-center">
+    <h2 class="serif text-4xl font-black text-white mb-4">Ready to actually learn?</h2>
+    <p class="text-gray-400 text-lg mb-10">Join students who are done being confused.</p>
+    {% if user.is_authenticated %}
+        <a href="/dashboard/" style="background: var(--green);" class="inline-block text-white px-10 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition">Go to Dashboard</a>
+    {% else %}
+        <a href="/register/" style="background: var(--green);" class="inline-block text-white px-10 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition">Create your free account</a>
+    {% endif %}
+</div>
+
+{% endblock %}

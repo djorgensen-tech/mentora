@@ -1,0 +1,8 @@
+docker tag mentora us-central1-docker.pkg.dev/mentora-djapp/mentora/mentora:v2
+docker push us-central1-docker.pkg.dev/mentora-djapp/mentora/mentora:v2
+gcloud run deploy mentora \
+    --image us-central1-docker.pkg.dev/mentora-djapp/mentora/mentora:v2 \
+    --platform managed \
+    --region us-central1 \
+    --allow-unauthenticated \
+    --set-env-vars="PYTHONPATH=/app,SECRET_KEY=t**rd-%+@o^)r*899g=5eq8^gb--hz&ilwb^kyazmy@n-)-vld,DEBUG=False,ALLOWED_HOSTS=mentora-628235845649.us-central1.run.app,DATABASE_URL=sqlite:///db.sqlite3"
