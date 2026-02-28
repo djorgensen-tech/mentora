@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --green: #1db954;
+            --green-dark: #158a3e;
+            --cream: #faf9f6;
+            --charcoal: #1a1a2e;
+            --warm-gray: #5f5f6e;
+        }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); }
+        .serif { font-family: 'Merriweather', serif; }
+    </style>
+</head>
+<body>
+    <nav style="background: var(--charcoal);" class="px-8 py-4 flex justify-between items-center">
+        <a href="/" class="serif text-2xl font-black text-white tracking-tight">mentora</a>
+        <div class="flex gap-6 items-center">
+            {% if user.is_authenticated %}
+                <span class="text-gray-300 text-sm font-medium">Hi, {{ user.first_name|default:user.username }}</span>
+                <a href="/logout/" class="text-gray-300 hover:text-white text-sm font-medium transition">Logout</a>
+            {% else %}
+                <a href="/login/" class="text-gray-300 hover:text-white text-sm font-medium transition">Log In</a>
+                <a href="/register/" style="background: var(--green);" class="text-white px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition">Get Started</a>
+            {% endif %}
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
