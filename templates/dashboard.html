@@ -698,8 +698,8 @@ function speak(text) {
     if (isMuted || !speechSynth) return;
     speechSynth.cancel();
     currentUtterance = new SpeechSynthesisUtterance(text);
-    currentUtterance.rate  = 10.0;
-    currentUtterance.pitch = 10.0;
+    currentUtterance.rate  = 1.0;
+    currentUtterance.pitch = 1.0;
     const voices    = speechSynth.getVoices();
     const preferred = voices.find(v => v.name.includes('Google UK English Male'))
                || voices.find(v => v.name.includes('Microsoft David'))
